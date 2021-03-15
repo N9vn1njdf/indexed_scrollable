@@ -96,7 +96,7 @@ class _HomeState extends State<Home> {
       ),
     ];
 
-    final scrollable = CustomScrollable(
+    final scrollable = IndexedScrollable(
       controller: controller,
       viewportBuilder: (BuildContext context, ViewportOffset offset) {
         return Viewport(

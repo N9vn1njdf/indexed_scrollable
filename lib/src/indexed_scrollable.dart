@@ -16,7 +16,7 @@ import './indexed_scroll_controller.dart';
 /// 1. Получаем [Viewport], переданный через [viewportBuilder].
 /// 2. Получаем массив [SliverList], который передан в [slivers].
 /// 3. Для каждого [SliverList] получаем всех детей и определяем их размер и индекс.
-class CustomScrollable extends StatefulWidget {
+class IndexedScrollable extends StatefulWidget {
   final Key key;
   final AxisDirection axisDirection;
   final IndexedScrollController controller;
@@ -28,7 +28,7 @@ class CustomScrollable extends StatefulWidget {
   final DragStartBehavior dragStartBehavior;
   final String restorationId;
 
-  CustomScrollable({
+  IndexedScrollable({
     this.key,
     this.axisDirection = AxisDirection.down,
     this.controller,
@@ -45,7 +45,7 @@ class CustomScrollable extends StatefulWidget {
   _CustomScrollableState createState() => _CustomScrollableState();
 }
 
-class _CustomScrollableState extends State<CustomScrollable> {
+class _CustomScrollableState extends State<IndexedScrollable> {
   /// Для доступа к [ScrollableState]
   final scrollableKey = GlobalKey<ScrollableState>();
 
