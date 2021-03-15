@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:flutter/gestures.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
+import '../indexed_scrollable.dart';
 import './indexed_scroll_controller.dart';
 
 /// Обертка для Scrollable
@@ -64,6 +67,7 @@ class _CustomScrollableState extends State<IndexedScrollable> {
 
   /// Проходит ли индексация в текущий момент
   bool indexing = false;
+  Completer<void> indexingCompleter;
 
   @override
   void initState() {
@@ -93,19 +97,37 @@ class _CustomScrollableState extends State<IndexedScrollable> {
     });
   }
 
+  /// Ищет все [SliverList] в [scrollable]
+  List<SliverList> _getSliverLists() {
+    final List<SliverList> result = [];
+
+    void visitor(Element element) {
+      if (element.widget is SliverList) {
+        result.add(element.widget);
+      }
+      element.visitChildren(visitor);
+    }
+
+    scrollableKey.currentContext.visitChildElements(visitor);
+    return result;
+  }
+
   /// Индексирует всех детей, чтобы получить их размеры и порядковый номер во [Viewport]
-  void index() {
-    if (indexing) return;
+  Future<void> index() {
+    if (indexing) {
+      return null;
+    }
     print('Indexing content...');
 
-    indexing = true;
+    indexingCompleter = new Completer();
+
     final List<Widget> rawChildren = [];
 
-    for (var sliverList in viewport.children) {
-      if (sliverList is SliverList) {
-        rawChildren.addAll(getSliverListChildren(sliverList));
-      }
-    }
+    final lists = _getSliverLists();
+    lists.forEach((SliverList list) {
+      final childs = getSliverListChildren(list);
+      rawChildren.addAll(childs);
+    });
 
     for (var i = 0; i < rawChildren.length; i++) {
       final child = rawChildren[i];
@@ -121,7 +143,13 @@ class _CustomScrollableState extends State<IndexedScrollable> {
       );
     }
 
+    if (rawChildren.isEmpty) {
+      print('Viewport is empty');
+    }
+
     setState(() {});
+
+    return indexingCompleter.future;
   }
 
   /// Обрабатывает информацию, полученную от [SizeComputator]
@@ -131,7 +159,7 @@ class _CustomScrollableState extends State<IndexedScrollable> {
   void sizeCallback(Key childKey, int childIndex, Size size) {
     children.remove(childKey);
 
-    SchedulerBinding.instance.addPostFrameCallback((timeStamp) {
+    SchedulerBinding.instance.addPostFrameCallback((_) {
       position.setChildSize(childKey, childIndex, size);
       position.indexCallback = index;
     });
@@ -139,6 +167,10 @@ class _CustomScrollableState extends State<IndexedScrollable> {
     if (children.isEmpty) {
       setState(() => indexing = false);
       print('Indexing done');
+
+      SchedulerBinding.instance.addPostFrameCallback((_) {
+        indexingCompleter.complete();
+      });
     }
   }
 
@@ -198,11 +230,14 @@ class _SizeComputatorState extends State<SizeComputator> {
   @override
   void initState() {
     super.initState();
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      // TODO если высота будет выше чем высота Scrollable, то размер будет обрезан до высоты Scrollable,
-      // TODO что ведет к неправильному вычислению offset при jumpToKey
       RenderBox renderBox = context.findRenderObject();
-      widget.callback(widget.childKey, widget.childIndex, renderBox.size);
+
+      final w = renderBox.getMaxIntrinsicWidth(0);
+      final h = renderBox.getMaxIntrinsicHeight(0);
+
+      widget.callback(widget.childKey, widget.childIndex, Size(w, h));
     });
   }
 

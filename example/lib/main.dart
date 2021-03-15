@@ -52,24 +52,6 @@ class _HomeState extends State<Home> {
     controller.dispose();
   }
 
-  IndexedWidget builder(BuildContext context, int i, String prefix, List<String> data) {
-    final key = '$prefix\_$i';
-
-    return IndexedWidget(
-      indexKey: key,
-      child: Container(
-        padding: EdgeInsets.all(10),
-        child: Wrap(children: [
-          Text('indexKey: $key', style: TextStyle(fontWeight: FontWeight.bold)),
-          SizedBox(height: 15, width: double.infinity),
-          Text(data[i]),
-        ]),
-        color: Colors.greenAccent,
-        margin: EdgeInsets.only(bottom: 10),
-      ),
-    );
-  }
-
   Widget jumpButton(String key) {
     return FlatButton(
       color: Colors.green,
@@ -80,28 +62,15 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    List<SliverList> slivers = [
-      /// Учитываются только [SliverList] с [SliverChildBuilderDelegate]
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (c, i) => builder(c, i, 'item_1', data1),
-          childCount: data1.length,
-        ),
-      ),
-      SliverList(
-        delegate: SliverChildBuilderDelegate(
-          (c, i) => builder(c, i, 'item_2', data2),
-          childCount: data2.length,
-        ),
-      ),
-    ];
-
     final scrollable = IndexedScrollable(
       controller: controller,
       viewportBuilder: (BuildContext context, ViewportOffset offset) {
         return Viewport(
           offset: offset,
-          slivers: slivers,
+          slivers: [
+            SliverListWrapper('item_1', data1),
+            SliverListWrapper('item_2', data2),
+          ],
         );
       },
     );
@@ -130,13 +99,57 @@ class _HomeState extends State<Home> {
           ),
           FlatButton(
             color: Colors.blueAccent,
-            onPressed: () => controller.index(),
+            onPressed: () => {
+              controller.index().then((value) {
+                print('Index completed!');
+                controller.jumpToKey('item_1_3');
+              })
+            },
             child: Text(
-              'Index content',
+              'Index content and jump to item_1_3',
               style: TextStyle(color: Colors.white),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class SliverListWrapper extends StatelessWidget {
+  final String prefix;
+  final List<String> data;
+
+  SliverListWrapper(this.prefix, this.data);
+
+  IndexedWidget builder(BuildContext context, int i) {
+    final key = '$prefix\_$i';
+
+    return IndexedWidget(
+      indexKey: key,
+      child: Container(
+        padding: EdgeInsets.all(10),
+        height: 500,
+        child: Wrap(children: [
+          Text('indexKey: $key', style: TextStyle(fontWeight: FontWeight.bold)),
+          SizedBox(height: 15, width: double.infinity),
+          Text(data[i]),
+        ]),
+        color: Colors.greenAccent,
+        margin: EdgeInsets.only(bottom: 10),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    ///
+    /// Учитываются только [SliverList] с [SliverChildBuilderDelegate]
+    ///
+    return SliverList(
+      delegate: SliverChildBuilderDelegate(
+        builder,
+        childCount: data.length,
       ),
     );
   }

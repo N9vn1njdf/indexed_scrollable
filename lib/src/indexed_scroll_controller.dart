@@ -22,9 +22,9 @@ class IndexedScrollController extends ScrollController {
   }
 
   /// Проиндексировать контент в [IndexedScrollable]
-  void index() {
+  Future<void> index() async {
     for (final position in List<IndexedScrollPosition>.from(positions)) {
-      position.index();
+      await position.index();
     }
   }
 
@@ -42,7 +42,7 @@ class IndexedScrollPosition extends ScrollPositionWithSingleContext {
   final List<_ChildSizeData> _data = [];
 
   /// Коллбек для выполнения индексации, устанавливается в [IndexedScrollable]
-  Function indexCallback;
+  Future<void> Function() indexCallback;
 
   IndexedScrollPosition({
     context,
@@ -61,10 +61,11 @@ class IndexedScrollPosition extends ScrollPositionWithSingleContext {
         );
 
   /// Проиндексировать контент в [IndexedScrollable]
-  void index() {
+  Future<void> index() {
     if (indexCallback != null) {
-      indexCallback();
+      return indexCallback();
     }
+    return null;
   }
 
   /// Аналогично [jumpTo], только принимает ключ виджета, к которому хотим прыгнуть
