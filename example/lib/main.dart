@@ -102,7 +102,7 @@ class _HomeState extends State<Home> {
             onPressed: () => {
               controller.index().then((value) {
                 print('Index completed!');
-                controller.jumpToKey('item_1_3');
+                controller.jumpToKey('item_1_3', offset: 10);
               })
             },
             child: Text(

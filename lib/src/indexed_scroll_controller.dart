@@ -29,9 +29,9 @@ class IndexedScrollController extends ScrollController {
   }
 
   /// Прыгнуть к нужному виджету по его ключу [value]
-  void jumpToKey(String value) {
+  void jumpToKey(String indexKey, {double offset = 0}) {
     for (final position in List<IndexedScrollPosition>.from(positions)) {
-      position.jumpToKey(value);
+      position.jumpToKey(indexKey, offset);
     }
   }
 }
@@ -69,17 +69,17 @@ class IndexedScrollPosition extends ScrollPositionWithSingleContext {
   }
 
   /// Аналогично [jumpTo], только принимает ключ виджета, к которому хотим прыгнуть
-  void jumpToKey(String value) {
+  void jumpToKey(String indexKey, double offset) {
     goIdle();
 
-    double offset = 0;
+    double totalOffset = 0;
     for (var item in _data) {
-      if (item.key == Key(value)) {
-        forcePixels(offset);
+      if (item.key == Key(indexKey)) {
+        forcePixels(totalOffset - offset);
         break;
       }
 
-      offset += item.size.height;
+      totalOffset += item.size.height;
     }
 
     didEndScroll();
