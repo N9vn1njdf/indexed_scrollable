@@ -5,7 +5,6 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter/widgets.dart';
 
-import '../indexed_scrollable.dart';
 import './indexed_scroll_controller.dart';
 
 /// Обертка для Scrollable
@@ -198,7 +197,7 @@ class _CustomScrollableState extends State<IndexedScrollable> {
     return Stack(
       children: [
         scrollable,
-        ...(children.entries.map((entry) => entry.value).toList()),
+        ...children.values.toList(),
       ],
     );
   }
@@ -233,19 +232,20 @@ class _SizeComputatorState extends State<SizeComputator> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       RenderBox renderBox = context.findRenderObject();
-
-      final w = renderBox.getMaxIntrinsicWidth(0);
-      final h = renderBox.getMaxIntrinsicHeight(0);
-
-      widget.callback(widget.childKey, widget.childIndex, Size(w, h));
+      widget.callback(widget.childKey, widget.childIndex, renderBox.size);
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Opacity(
-      opacity: 0,
-      child: widget.child,
+    return Positioned(
+      child: Opacity(
+        opacity: 0,
+        child: widget.child,
+      ),
+      bottom: 0,
+      left: 0,
+      right: 0,
     );
   }
 }

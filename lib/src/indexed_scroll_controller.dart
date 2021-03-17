@@ -5,6 +5,10 @@ import 'package:flutter/rendering.dart';
 ///
 /// Добавляет метод [jumpToKey], который позволяет прыгнуть к нужному виджету по ключу
 class IndexedScrollController extends ScrollController {
+  final bool reversed;
+
+  IndexedScrollController({this.reversed = false});
+
   @override
   ScrollPosition createScrollPosition(
     ScrollPhysics physics,
@@ -31,7 +35,7 @@ class IndexedScrollController extends ScrollController {
   /// Прыгнуть к нужному виджету по его ключу [value]
   void jumpToKey(String indexKey, {double offset = 0}) {
     for (final position in List<IndexedScrollPosition>.from(positions)) {
-      position.jumpToKey(indexKey, offset);
+      position.jumpToKey(indexKey, offset, reversed);
     }
   }
 }
@@ -69,12 +73,15 @@ class IndexedScrollPosition extends ScrollPositionWithSingleContext {
   }
 
   /// Аналогично [jumpTo], только принимает ключ виджета, к которому хотим прыгнуть
-  void jumpToKey(String indexKey, double offset) {
+  void jumpToKey(String indexKey, double offset, bool reversed) {
     goIdle();
 
     double totalOffset = 0;
     for (var item in _data) {
       if (item.key == Key(indexKey)) {
+        if (reversed) {
+          // totalOffset += item.size.height;
+        }
         forcePixels(totalOffset - offset);
         break;
       }
@@ -83,7 +90,6 @@ class IndexedScrollPosition extends ScrollPositionWithSingleContext {
     }
 
     didEndScroll();
-    // goBallistic(0.0);
   }
 
   void setChildSize(Key key, int childIndex, Size childSize) {
